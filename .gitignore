@@ -1,5 +1,5 @@
 build/*
 bin/*
 .DS_Store
-.gradle
-.settings
+/.gradle/
+/.settings/
