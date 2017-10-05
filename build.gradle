@@ -1,0 +1,47 @@
+group 'com.moments'
+
+apply plugin: "war"
+apply plugin: "base"
+apply plugin: "java"
+
+  repositories {
+	    jcenter()
+	  }
+
+dependencies {
+	compile (
+		  [group: 'javax.ws.rs', name:'javax.ws.rs-api', version:'2.0'],
+	    [group: 'org.glassfish.jersey.core', name:'jersey-server', version:'2.26'],
+	    [group: 'org.glassfish.jersey.containers', name:'jersey-container-servlet', version:'2.26'],
+	    [group: 'org.glassfish.jersey.media', name:'jersey-media-multipart', version:'2.26'],
+	    [group: 'org.glassfish.jersey.media', name:'jersey-media-json-jackson', version:'2.26'],
+	    [group: 'org.glassfish.jersey.core', name:'jersey-client', version:'2.26'],
+	    [group: 'org.glassfish.jersey.ext.cdi', name:'jersey-weld2-se', version:'2.26'],
+      [group: 'javax.servlet', name:'javax.servlet-api', version:'3.1.0'],
+      [group: 'org.json', name:'json', version:'20170516'],
+      [group: 'io.swagger', name:'swagger-jersey2-jaxrs', version:'1.5.8'],
+      [group: 'io.swagger', name:'swagger-jersey2-jaxrs', version:'1.5.8'],
+      [group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.26'],
+      [group: 'com.amazonaws', name: 'aws-java-sdk', version: '1.11.205']
+    )
+
+}
+task createWar(type: Copy){
+war{
+    baseName 'moments-platform'
+  }
+}
+
+task copyLatestWar(type: Copy) {
+    from tasks.war
+    into "$buildDir/libs"
+
+    rename("moments-platform-.*", "moments-platformt.war")
+}
+
+task copyJettyFiles(type: Copy){
+  from "docker/jetty/"
+  into "$buildDir/jetty/"
+}
+tasks.createWar.finalizedBy tasks.copyLatestWar
+build.dependsOn copyJettyFiles

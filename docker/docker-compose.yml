@@ -1,0 +1,18 @@
+version: "2"
+services:
+  moments:
+    build:
+      context: jetty
+    volumes:
+      - ../build/libs/moments-platform.war:/opt/moments/moments-platform.war
+      - ../build/jetty/webapps:/var/lib/jetty/webapps
+      - ../build/jetty/entrypoint.sh:/moments-entrypoint.sh
+    command:
+      - java
+      #- -Djava.io.tmpdir=/var/lib/jetty/work
+      - -Xms256m
+      - -Xmx512m
+      - -jar
+      - /usr/local/jetty/start.jar
+    ports:
+      - "8080:8080"
