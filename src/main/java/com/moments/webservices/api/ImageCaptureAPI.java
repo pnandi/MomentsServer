@@ -1,6 +1,7 @@
 package com.moments.webservices.api;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -25,15 +26,18 @@ import com.moments.webservices.services.impl.ImageServicesImpl;
 public class ImageCaptureAPI{
 
 	@Path("getImage")
-	@GET
-	@Consumes(MediaType.WILDCARD)
-	@Produces(MediaType.WILDCARD)
-	public Response getImages() {
+	@POST
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_OCTET_STREAM)
+	public Response getImages(String key) {
 
 		ImageServicesImpl imageServices = new ImageServicesImpl();
-		ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", "IMG_3156.JPG");
+		ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
         System.out.println("Server size: " + baos.size());
-        return Response.ok(baos).build();
+        
+        return Response.ok(baos.toByteArray(),MediaType.APPLICATION_OCTET_STREAM)
+        		.header("content-disposition","attachment; filename = IMG_3156.JPG")
+        		.build();
 	}
 
 	@Path("uploadImage")
@@ -43,7 +47,7 @@ public class ImageCaptureAPI{
 	public Response setImage(@FormDataParam(value = "file") InputStream uploadedInputStream,
 	@FormDataParam("file") FormDataContentDisposition fileDetail) {
 		System.out.println("in uploadImage -->"+fileDetail);
-		
+
 		ImageServicesImpl imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int len;
