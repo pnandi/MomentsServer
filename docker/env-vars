@@ -1,0 +1,2 @@
+NOSQL_URI=mongodb://mongo:27017/moments_db
+NOSQL_DB=moments_db

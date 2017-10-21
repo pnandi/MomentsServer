@@ -14,6 +14,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -26,10 +27,10 @@ import com.moments.webservices.services.impl.ImageServicesImpl;
 public class ImageCaptureAPI{
 
 	@Path("getImage")
-	@POST
+	@GET
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public Response getImages(String key) {
+	public Response getImages(@QueryParam("key") String key) {
 
 		ImageServicesImpl imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
@@ -58,6 +59,7 @@ public class ImageCaptureAPI{
 			    baos.write(buffer, 0, len);
 			}
 			result = imageServices.setObjectToS3("moments-images", fileDetail.getFileName(),baos);
+			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

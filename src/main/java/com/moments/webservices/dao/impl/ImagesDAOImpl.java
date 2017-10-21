@@ -29,7 +29,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
-		BasicAWSCredentials awsCredentials = new BasicAWSCredentials("AKIAIII36BP6U4R54OPA", "gVHOQNfe91Eno8GtBB6mRw7NgOjLEKnwMsmpdyJv");
+		BasicAWSCredentials awsCredentials = new BasicAWSCredentials("AKIAJWY2DLAIPQP7WVRA", "CJvy4zOMEwdGo0J4i4SvM+uel2x60jZHlJyNDla6");
 
 		//AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 		AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
@@ -81,7 +81,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 		try {
 			System.out.println("Uploading a new object to S3 from a file\n");
 			//File file = new File(inputStream);
-			BasicAWSCredentials awsCredentials = new BasicAWSCredentials("AKIAIII36BP6U4R54OPA", "gVHOQNfe91Eno8GtBB6mRw7NgOjLEKnwMsmpdyJv");
+			BasicAWSCredentials awsCredentials = new BasicAWSCredentials("ACCESS_KEY", "SECRET_KEY");
 
 			AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
 					withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
@@ -89,7 +89,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 			ObjectMetadata objMetaData = new ObjectMetadata();
 			objMetaData.setContentLength(baos.toByteArray().length);
 			InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-			
+
 			s3Client.putObject(new PutObjectRequest(bucketName, key, inputStream, objMetaData));
 
 		} catch (AmazonServiceException ase) {
