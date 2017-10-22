@@ -29,7 +29,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
-		BasicAWSCredentials awsCredentials = new BasicAWSCredentials("AKIAJWY2DLAIPQP7WVRA", "CJvy4zOMEwdGo0J4i4SvM+uel2x60jZHlJyNDla6");
+		BasicAWSCredentials awsCredentials = new BasicAWSCredentials("ACCESS_KEY", "SECRET_KEY");
 
 		//AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 		AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
