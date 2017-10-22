@@ -1,0 +1,18 @@
+image
+  s3_baseLocation
+  s3_location
+  largeFormImageName
+  largeFormFileSize
+  checkSum
+  smallFormImageName
+  smallFormImageSize
+
+
+userData
+  phoneNo
+  lastLogin
+  passHash
+  hashLastModified
+  lastRegisteredDevice
+  imageFolder
+  messages

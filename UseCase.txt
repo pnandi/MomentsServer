@@ -1,0 +1,28 @@
+1:Use Case
+AC
+  # As a user I should be able to upload an image
+    Base folder: Ph #
+    Image categoraization
+      Happy
+      Low
+  # As a user I should be able to add text/msgs to image
+    Store messages for imageId
+
+2: Use Case
+AC
+  # As a user I should be able to see my timeline
+    Display large image
+
+
+
+Technical details
+
+Use Case1
+
+Request Flow:->
+  Upload image API Call
+    basic authentication
+      phone # + passHash
+      
+
+Mongo schema
