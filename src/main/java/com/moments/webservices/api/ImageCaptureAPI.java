@@ -1,15 +1,11 @@
 package com.moments.webservices.api;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -17,6 +13,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import com.moments.webservices.services.ImageServices;
 import com.moments.webservices.services.impl.ImageServicesImpl;
@@ -32,7 +31,7 @@ public class ImageCaptureAPI{
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
 	public Response getImages(@QueryParam("key") String key) {
 
-		ImageServicesImpl imageServices = new ImageServicesImpl();
+		ImageServices imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
         System.out.println("Server size: " + baos.size());
         
@@ -49,7 +48,7 @@ public class ImageCaptureAPI{
 	@FormDataParam("file") FormDataContentDisposition fileDetail) {
 		System.out.println("in uploadImage -->"+fileDetail);
 
-		ImageServicesImpl imageServices = new ImageServicesImpl();
+		ImageServices imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int len;
         byte[] buffer = new byte[4096];
