@@ -47,20 +47,24 @@ public class ImageCaptureAPI{
 	@Path("uploadImage")
 	@POST
 	@Consumes(MediaType.WILDCARD)
-	@Produces(MediaType.WILDCARD)
+	//@Produces(MediaType.WILDCARD)
+	@Produces("application/json")
 	public Response setImage(@FormDataParam(value = "file") InputStream uploadedInputStream,
-	@FormDataParam("file") FormDataContentDisposition fileDetail) {
+	@FormDataParam("file") FormDataContentDisposition fileDetail,
+	@FormDataParam("isHappy") boolean isHappy) {
 		System.out.println("in uploadImage -->"+fileDetail);
-
+		System.out.println("isHappy --> "+ isHappy);
 		ImageServicesImpl imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int len;
         byte[] buffer = new byte[4096];
         boolean result = false;
         NoSQLDBUtils dbUtils = new NoSQLDBUtils();
+        // Need to get timestamp from device
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        String folderName = dbUtils.getFolderName(518366499, true);
-        dbUtils.prepareDocumentImages(518366499,true,"moments-images", folderName, fileDetail.getFileName(), timeStamp );
+        String folderName = dbUtils.getFolderName(518366499, isHappy);
+        System.out.println("folderName Found: " + folderName + "\n");
+        dbUtils.prepareDocumentImages(518366499,isHappy,"moments-images", folderName, fileDetail.getFileName(), timeStamp );
    
         try {
 			while ((len = uploadedInputStream.read(buffer, 0, buffer.length)) != -1) {
@@ -71,9 +75,12 @@ public class ImageCaptureAPI{
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return Response.status(403).entity(e).build();
+	               
 		}
+        return Response.status(200).entity(result).build();
 
-		return Response.ok(result).build();
+		//return Response.ok(result).build();
 	}
 
 	/*@POST
