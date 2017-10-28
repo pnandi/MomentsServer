@@ -1,7 +1,8 @@
 #FROM ubuntu
 FROM jetty:9.3
 
-RUN java -jar $JETTY_HOME/start.jar --add-to-startd=jmx,stats,servlets,logging
+#ADD https://github.com/jetty-project/logging-modules/tree/master/logback/logging.mod modules/
+RUN java -jar $JETTY_HOME/start.jar --add-to-startd=logging --add-to-startd=servlets --add-to-startd=jmx --add-to-startd=stats
 
 VOLUME /opt/moments
 VOLUME /var/lib/jetty/work

@@ -3,23 +3,19 @@ package com.moments.webservices.dao.impl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import org.json.JSONObject;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -30,7 +26,6 @@ import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.webservices.dao.ImagesDAO;
 
 public class ImagesDAOImpl implements ImagesDAO{
-
 	private static final String SUFFIX = "/";
 	private String HAPPY = "happy";
 	private String SAD = "sad";
@@ -40,16 +35,12 @@ public class ImagesDAOImpl implements ImagesDAO{
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
 		BasicAWSCredentials awsCredentials = new BasicAWSCredentials(KEY1, KEY2);
-
 		//AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 		AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
 				withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			System.out.println("Downloading an object");
-
-			//Region region = Region.getRegion(Regions.US_EAST_1);
-			//s3Client.setRegion(region);
 
 			S3Object s3object = s3Client.getObject(new GetObjectRequest(bucketName, key));
 			System.out.println("Content-Type: " + s3object.getObjectMetadata().getContentType());
@@ -88,7 +79,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 
 	@Override
 	public boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos) {
-
+	        NoSQLDBUtils dbUtils = new NoSQLDBUtils();
 		try {
 			System.out.println("Uploading a new object to S3 from a file\n");
 			System.out.println("BucketName: " + bucketName + "\n");
@@ -113,6 +104,10 @@ public class ImagesDAOImpl implements ImagesDAO{
 			System.out.println("new key: " + key + "\n");
 			s3Client.putObject(new PutObjectRequest(bucketName, key, inputStream, objMetaData));
 	
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("imageSize", baos.toByteArray().length);
+			dbUtils.saveImageMetaDataToDB(jsonObj);
+
 		} catch (AmazonServiceException ase) {
 			System.out.println("Caught an AmazonServiceException, which " + "means your request made it "
 					+ "to Amazon S3, but was rejected with an error response" + " for some reason.");

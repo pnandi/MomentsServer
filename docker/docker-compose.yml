@@ -7,6 +7,8 @@ services:
       - ../build/libs/moments-platform.war:/opt/moments/moments-platform.war
       - ../build/jetty/webapps:/var/lib/jetty/webapps
       - ../build/jetty/entrypoint.sh:/moments-entrypoint.sh
+      - ../build/jetty/resources/logback.xml:/var/lib/jetty/resources/logback.xml
+      - ../build/jetty/modules/logging.mod:/var/lib/jetty/modules/logging.mod
     env_file: env-vars
     command:
       - java
