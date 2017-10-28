@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -20,12 +22,13 @@ import javax.ws.rs.core.Response;
 
 import com.moments.webservices.services.ImageServices;
 import com.moments.webservices.services.impl.ImageServicesImpl;
-
+import com.moments.db.utils.NoSQLDBUtils;
+import org.json.JSONObject;
 
 @Path("image")
 @RequestScoped
 public class ImageCaptureAPI{
-
+	
 	@Path("getImage")
 	@GET
 	@Consumes(MediaType.TEXT_PLAIN)
@@ -54,11 +57,16 @@ public class ImageCaptureAPI{
         int len;
         byte[] buffer = new byte[4096];
         boolean result = false;
+        NoSQLDBUtils dbUtils = new NoSQLDBUtils();
+        String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+        String folderName = dbUtils.getFolderName(518366499, true);
+        dbUtils.prepareDocumentImages(518366499,true,"moments-images", folderName, fileDetail.getFileName(), timeStamp );
+   
         try {
 			while ((len = uploadedInputStream.read(buffer, 0, buffer.length)) != -1) {
 			    baos.write(buffer, 0, len);
 			}
-			result = imageServices.setObjectToS3("moments-images", fileDetail.getFileName(),baos);
+			result = imageServices.setObjectToS3("moments-images", fileDetail.getFileName(), folderName , baos);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -90,4 +98,6 @@ public class ImageCaptureAPI{
 	    return Response.status(200).entity(output).build();
 
 	}*/
+	
+	
 }

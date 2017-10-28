@@ -21,10 +21,11 @@ public class ImageServicesImpl implements ImageServices{
 	}
 
 	@Override
-	public boolean setObjectToS3(String bucketName, String key, ByteArrayOutputStream baos) {
+	public boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos) {
 
 		ImagesDAOImpl imagesDAO = new ImagesDAOImpl();
-		 return imagesDAO.setObjectToS3(bucketName, key,baos);
+		 return imagesDAO.setObjectToS3(bucketName, key,folderName, baos);
 	}
+
 
 }

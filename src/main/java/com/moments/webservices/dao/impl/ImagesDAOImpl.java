@@ -1,5 +1,6 @@
 package com.moments.webservices.dao.impl;
 
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -7,7 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -22,14 +25,20 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.webservices.dao.ImagesDAO;
 
 public class ImagesDAOImpl implements ImagesDAO{
 
+	private static final String SUFFIX = "/";
+	private String HAPPY = "happy";
+	private String SAD = "sad";
+	
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
-		BasicAWSCredentials awsCredentials = new BasicAWSCredentials("ACCESS_KEY", "SECRET_KEY");
+		BasicAWSCredentials awsCredentials = new BasicAWSCredentials("AKIAJFQFUB2TAFAGWJBQ", "b73TlDHSpf2cAb999cPfSKEWFB8k+mcf+6NO3h8Y");
 
 		//AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 		AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
@@ -75,13 +84,19 @@ public class ImagesDAOImpl implements ImagesDAO{
 		}
 		return baos;
 	}
+
 	@Override
-	public boolean setObjectToS3(String bucketName, String key, ByteArrayOutputStream baos) {
+	public boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos) {
 
 		try {
 			System.out.println("Uploading a new object to S3 from a file\n");
+			System.out.println("BucketName: " + bucketName + "\n");
+			System.out.println("key: " + key + "\n");
+			System.out.println("folderName: " + folderName + "\n");
+			
+	    
 			//File file = new File(inputStream);
-			BasicAWSCredentials awsCredentials = new BasicAWSCredentials("ACCESS_KEY", "SECRET_KEY");
+			BasicAWSCredentials awsCredentials = new BasicAWSCredentials("AKIAJFQFUB2TAFAGWJBQ", "b73TlDHSpf2cAb999cPfSKEWFB8k+mcf+6NO3h8Y");
 
 			AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
 					withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
@@ -89,9 +104,14 @@ public class ImagesDAOImpl implements ImagesDAO{
 			ObjectMetadata objMetaData = new ObjectMetadata();
 			objMetaData.setContentLength(baos.toByteArray().length);
 			InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-
+            
+			if (lookupFolder(bucketName, folderName, s3Client) != true) {
+			    createFolder(bucketName, folderName, s3Client);
+			}
+			key = folderName + SUFFIX + key;
+			System.out.println("new key: " + key + "\n");
 			s3Client.putObject(new PutObjectRequest(bucketName, key, inputStream, objMetaData));
-
+	
 		} catch (AmazonServiceException ase) {
 			System.out.println("Caught an AmazonServiceException, which " + "means your request made it "
 					+ "to Amazon S3, but was rejected with an error response" + " for some reason.");
@@ -108,5 +128,37 @@ public class ImagesDAOImpl implements ImagesDAO{
 		}
 		return true;
 	}
-
+	public static void createFolder(String bucketName, String folderName, AmazonS3 client) {
+		
+		System.out.println("In create folder\n");
+		// create meta-data for your folder and set content-length to 0
+		ObjectMetadata metadata = new ObjectMetadata();
+		metadata.setContentLength(0);
+		// create empty content
+		InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
+		// create a PutObjectRequest passing the folder name suffixed by /
+		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName,
+				folderName + SUFFIX, emptyContent, metadata);
+		// send request to S3 to create folder
+		client.putObject(putObjectRequest);
+	}
+	public static void deleteFolder(String bucketName, String folderName, AmazonS3 client) {
+		List<S3ObjectSummary> fileList = 
+				client.listObjects(bucketName, folderName).getObjectSummaries();
+		for (S3ObjectSummary file : fileList) {
+			client.deleteObject(bucketName, file.getKey());
+		}
+		client.deleteObject(bucketName, folderName);
+	}
+	
+	public static boolean lookupFolder(String bucketName, String folderName, AmazonS3 client) {
+		List<S3ObjectSummary> fileList = 
+				client.listObjects(bucketName, folderName).getObjectSummaries();
+		boolean empty = false;
+		if (fileList.isEmpty()) {
+			empty = true;
+		}
+        return empty;
+	}
+	
 }
