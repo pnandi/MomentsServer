@@ -9,6 +9,7 @@ import java.util.Date;
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -19,10 +20,11 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
+import com.moments.db.utils.NoSQLDBUtils;
+import com.moments.security.service.MLAuthenticationService;
+import com.moments.security.service.impl.MLAuthenticationServiceImpl;
 import com.moments.webservices.services.ImageServices;
 import com.moments.webservices.services.impl.ImageServicesImpl;
-import com.moments.db.utils.NoSQLDBUtils;
-import org.json.JSONObject;
 
 @Path("image")
 @RequestScoped
@@ -31,9 +33,15 @@ public class ImageCaptureAPI{
 	@Path("getImage")
 	@GET
 	@Consumes(MediaType.TEXT_PLAIN)
-	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public Response getImages(@QueryParam("key") String key) {
-
+	@Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_JSON})
+	public Response getImages(@QueryParam("key") String key, @HeaderParam("authorization") String authString) {
+		
+		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
+		
+	       if(!authService.authenticate(authString)){
+	    	   	return Response.status(403).type(MediaType.APPLICATION_JSON).
+	    			   entity("{\"error\":\"User not authenticated\"}").build();
+	        }
 		ImageServices imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
         System.out.println("Server size: " + baos.size());
@@ -46,8 +54,7 @@ public class ImageCaptureAPI{
 	@Path("uploadImage")
 	@POST
 	@Consumes(MediaType.WILDCARD)
-	//@Produces(MediaType.WILDCARD)
-	@Produces("application/json")
+	@Produces(MediaType.APPLICATION_JSON)
 	public Response setImage(@FormDataParam(value = "file") InputStream uploadedInputStream,
 	    @FormDataParam("file") FormDataContentDisposition fileDetail,
 	    @FormDataParam("isHappy") boolean isHappy) {
