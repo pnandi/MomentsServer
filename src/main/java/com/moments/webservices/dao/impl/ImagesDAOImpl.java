@@ -29,12 +29,12 @@ public class ImagesDAOImpl implements ImagesDAO{
 	private static final String SUFFIX = "/";
 	private String HAPPY = "happy";
 	private String SAD = "sad";
-	private static final String KEY1 = "AKIAJFQFUB2TAFAGWJBQ";
-	private static final String KEY2 = "b73TlDHSpf2cAb999cPfSKEWFB8k+mcf+6NO3h8Y";
+	private BasicAWSCredentials awsCredentials = new BasicAWSCredentials("ACCESS_KEY", "SECRET_KEY");
+	
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
-		BasicAWSCredentials awsCredentials = new BasicAWSCredentials(KEY1, KEY2);
+
 		//AmazonS3 s3Client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 		AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
 				withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
@@ -79,16 +79,12 @@ public class ImagesDAOImpl implements ImagesDAO{
 
 	@Override
 	public boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos) {
-	        NoSQLDBUtils dbUtils = new NoSQLDBUtils();
+
 		try {
 			System.out.println("Uploading a new object to S3 from a file\n");
 			System.out.println("BucketName: " + bucketName + "\n");
 			System.out.println("key: " + key + "\n");
 			System.out.println("folderName: " + folderName + "\n");
-			
-	    
-			//File file = new File(inputStream);
-			BasicAWSCredentials awsCredentials = new BasicAWSCredentials(KEY1, KEY2);
 
 			AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
 					withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
@@ -106,7 +102,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 	
 			JSONObject jsonObj = new JSONObject();
 			jsonObj.put("imageSize", baos.toByteArray().length);
-			dbUtils.saveImageMetaDataToDB(jsonObj);
+			NoSQLDBUtils.saveImageMetaDataToDB(jsonObj);
 
 		} catch (AmazonServiceException ase) {
 			System.out.println("Caught an AmazonServiceException, which " + "means your request made it "

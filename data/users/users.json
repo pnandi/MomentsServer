@@ -1,0 +1,10 @@
+{
+  "username":"Nandi",
+	"phoneNo": "1234567890",
+	"lastLogin": "2017-11-105T00:00:00.000Z",
+	"passHash" :"ql8f+WsQT82JEyknSGsmMw==",
+	"hashLastModified": true,
+	"lastRegisteredDevice": "postman",
+	"imageFolder": "test",
+	"messages": "none"
+}
