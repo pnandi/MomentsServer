@@ -50,11 +50,20 @@ public class ImageCaptureAPI{
 	@Produces("application/json")
 	public Response setImage(@FormDataParam(value = "file") InputStream uploadedInputStream,
 	    @FormDataParam("file") FormDataContentDisposition fileDetail,
-	    @FormDataParam("isHappy") boolean isHappy) {
+	    @FormDataParam("isHappy") String isHappyInString,
+		@FormDataParam("firstName") String firstName,
+		@FormDataParam("comment") String comment) {
+		
 	    System.out.println("in uploadImage -->"+fileDetail);
-	    System.out.println("isHappy --> "+ isHappy);
+	    System.out.println("isHappy --> "+ isHappyInString);
+	    System.out.println("firstName --> "+ firstName);
+	    System.out.println("comment --> "+ comment);
+	    boolean isHappy = true;
+	    if (isHappyInString == "false" || isHappyInString =="0"){
+	      	isHappy = false;
+	    }
 	    ImageServicesImpl imageServices = new ImageServicesImpl();
-
+          
 	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
         int len;
         byte[] buffer = new byte[4096];

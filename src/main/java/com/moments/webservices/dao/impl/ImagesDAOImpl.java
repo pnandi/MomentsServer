@@ -29,8 +29,8 @@ public class ImagesDAOImpl implements ImagesDAO{
 	private static final String SUFFIX = "/";
 	private String HAPPY = "happy";
 	private String SAD = "sad";
-	private static final String KEY1 = "AKIAJFQFUB2TAFAGWJBQ";
-	private static final String KEY2 = "b73TlDHSpf2cAb999cPfSKEWFB8k+mcf+6NO3h8Y";
+	private static final String KEY1 = "";
+	private static final String KEY2 = "";
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
