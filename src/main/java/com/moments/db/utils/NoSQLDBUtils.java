@@ -25,9 +25,9 @@ import com.mongodb.client.MongoDatabase;
 
 public class NoSQLDBUtils extends MongoNoSQLClientProvider{
 	
-	private String SUFFIX = "/";
-	private String HAPPY = "happy";
-	private String SAD = "sad";
+	private static String SUFFIX = "/";
+	private static String HAPPY = "happy";
+	private static String SAD = "sad";
 	
 	private static Logger LOGGER = LoggerFactory.getLogger(NoSQLDBUtils.class);
 	
@@ -58,7 +58,7 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
 		return db.getCollection("users");
 	}
 	
-	public void prepareDocumentImages(Integer phoneNo, boolean isHappy, String bucketName, String folderName, String imageName, String timeStamp) {
+	public static void prepareDocumentImages(Integer phoneNo, boolean isHappy, String bucketName, String folderName, String imageName, String timeStamp) {
 		
 		System.out.println("in prepareDocumentImages start \n");
 		String fileLoc = bucketName + SUFFIX + Integer.toString(phoneNo) + SUFFIX;
@@ -87,7 +87,7 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
         }
        
 	}
-	public String getFolderName(Integer phoneNo, boolean isHappy) {
+	public static String getFolderName(Integer phoneNo, boolean isHappy) {
 		String folder = Integer.toString(phoneNo) + SUFFIX;
 		if (isHappy) {
 			folder += HAPPY;

@@ -66,12 +66,11 @@ public class ImageCaptureAPI{
         int len;
         byte[] buffer = new byte[4096];
         boolean result = false;
-        NoSQLDBUtils dbUtils = new NoSQLDBUtils();
         // Need to get timestamp from device
         String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        String folderName = dbUtils.getFolderName(518366499, isHappy);
+        String folderName = NoSQLDBUtils.getFolderName(518366499, isHappy);
         System.out.println("folderName Found: " + folderName + "\n");
-        dbUtils.prepareDocumentImages(518366499,isHappy,"moments-images", folderName, fileDetail.getFileName(), timeStamp );
+        NoSQLDBUtils.prepareDocumentImages(518366499,isHappy,"moments-images", folderName, fileDetail.getFileName(), timeStamp );
    
         try {
 			while ((len = uploadedInputStream.read(buffer, 0, buffer.length)) != -1) {
