@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.moments.db.MongoNoSQLClientProvider;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.moments.db.obj.UserData;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
@@ -23,19 +24,22 @@ import com.mongodb.client.MongoDatabase;
 
 
 public class NoSQLDBUtils extends MongoNoSQLClientProvider{
-	private String SUFFIX = "/";
-	private String HAPPY = "happy";
-	private String SAD = "sad";
+	
+	private static String SUFFIX = "/";
+	private static String HAPPY = "happy";
+	private static String SAD = "sad";
 	
 	private static Logger LOGGER = LoggerFactory.getLogger(NoSQLDBUtils.class);
 	
-	protected MongoClient noSQLClient = MongoNoSQLClientProvider.getNoSQLClient();
-	protected MongoDatabase db = noSQLClient.getDatabase(System.getenv("NOSQL_DB"));
+	protected static ObjectMapper mapper = new ObjectMapper();
 	
-	public void saveImageMetaDataToDB(JSONObject imageJson) {
+	protected static MongoClient noSQLClient = MongoNoSQLClientProvider.getNoSQLClient();
+	protected static MongoDatabase db = noSQLClient.getDatabase(System.getenv("NOSQL_DB"));
+	
+	public static void saveImageMetaDataToDB(JSONObject imageJson) {
 		try {
-			ObjectMapper om = new ObjectMapper();
-			HashMap<String,Object> imagesMap = om.readValue(imageJson.toString(), new TypeReference<Map<String, String>>(){});
+
+			HashMap<String,Object> imagesMap = mapper.readValue(imageJson.toString(), new TypeReference<Map<String, String>>(){});
 			//HashMap<String,Object> imagesMap = om.convertValue(imageJson, 
 			//		om.getTypeFactory().constructMapType(HashMap.class, String.class, Object.class));
 			LOGGER.info("saving to mongo {}",imageJson);
@@ -45,11 +49,16 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
 		}
 	}
 	
-	protected MongoCollection<Document> getImgageCollection(){
+	
+	protected static MongoCollection<Document> getImgageCollection(){
 		return db.getCollection("images");
 	}
 	
-	public void prepareDocumentImages(Integer phoneNo, boolean isHappy, String bucketName, String folderName, String imageName, String timeStamp) {
+	protected static MongoCollection<Document> getUsersCollection(){
+		return db.getCollection("users");
+	}
+	
+	public static void prepareDocumentImages(Integer phoneNo, boolean isHappy, String bucketName, String folderName, String imageName, String timeStamp) {
 		
 		System.out.println("in prepareDocumentImages start \n");
 		String fileLoc = bucketName + SUFFIX + Integer.toString(phoneNo) + SUFFIX;
@@ -78,7 +87,7 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
         }
        
 	}
-	public String getFolderName(Integer phoneNo, boolean isHappy) {
+	public static String getFolderName(Integer phoneNo, boolean isHappy) {
 		String folder = Integer.toString(phoneNo) + SUFFIX;
 		if (isHappy) {
 			folder += HAPPY;
