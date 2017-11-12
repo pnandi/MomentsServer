@@ -29,10 +29,10 @@ public class ImagesDAOImpl implements ImagesDAO{
 	private static final String SUFFIX = "/";
 	private String HAPPY = "happy";
 	private String SAD = "sad";
-	private static final String ACCESS_KEY = "AKIAIOG6AUOHOCFDXKVA";
-	private static final String SECRET_KEY = "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"";
+	private static final String ACCESS_KEY = "";
+	private static final String SECRET_KEY = "";
 	
-        private BasicAWSCredentials awsCredentials = new BasicAWSCredentials("ACCESS_KEY", "SECRET_KEY");
+    private BasicAWSCredentials awsCredentials = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
 	
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
@@ -88,6 +88,8 @@ public class ImagesDAOImpl implements ImagesDAO{
 			System.out.println("BucketName: " + bucketName + "\n");
 			System.out.println("key: " + key + "\n");
 			System.out.println("folderName: " + folderName + "\n");
+			System.out.println(awsCredentials.getAWSAccessKeyId());
+			System.out.println(awsCredentials.getAWSSecretKey());
 
 			AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
 					withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();

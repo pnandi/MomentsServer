@@ -58,17 +58,17 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
 		return db.getCollection("users");
 	}
 	
-	public static void prepareDocumentImages(Integer phoneNo, boolean isHappy, String bucketName, String folderName, String imageName, String timeStamp) {
+	public static void prepareDocumentImages(String userName, boolean isHappy, String bucketName, String folderName, String imageName, String timeStamp) {
 		
 		System.out.println("in prepareDocumentImages start \n");
-		String fileLoc = bucketName + SUFFIX + Integer.toString(phoneNo) + SUFFIX;
+		String fileLoc = bucketName + SUFFIX + userName + SUFFIX;
 		if (isHappy) {
 			fileLoc += HAPPY + SUFFIX;
 		}else {
 			fileLoc += SAD + SUFFIX;
 		}
 		JSONObject imageMetaData = new JSONObject();
-        imageMetaData.put("phoneNo", phoneNo);
+        imageMetaData.put("userName", userName);
         imageMetaData.put("isHappy", isHappy);
         imageMetaData.put("fileLoc", fileLoc);
         imageMetaData.put("imageKey", imageName);
@@ -87,8 +87,8 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
         }
        
 	}
-	public static String getFolderName(Integer phoneNo, boolean isHappy) {
-		String folder = Integer.toString(phoneNo) + SUFFIX;
+	public static String getFolderName(String userName, boolean isHappy) {
+		String folder = userName + SUFFIX;
 		if (isHappy) {
 			folder += HAPPY;
 		}else {
