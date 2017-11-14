@@ -6,10 +6,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -22,18 +28,27 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.moments.db.obj.ImageData;
+import com.moments.db.obj.UserData;
+import com.moments.db.utils.BsonHelper;
+import com.moments.db.utils.GenericUtils;
 import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.webservices.dao.ImagesDAO;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.FindIterable;
 
-public class ImagesDAOImpl implements ImagesDAO{
+import static com.mongodb.client.model.Filters.and;
+
+public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	private static final String SUFFIX = "/";
-	private String HAPPY = "happy";
-	private String SAD = "sad";
-	private static final String ACCESS_KEY = "";
-	private static final String SECRET_KEY = "";
-	
+	private static final String ACCESS_KEY = "AKIAJCYI6XKA7KFUFCDA";
+	private static final String SECRET_KEY = "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";
+
     private BasicAWSCredentials awsCredentials = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
-	
+
+	private static Logger LOGGER = LoggerFactory.getLogger(ImagesDAOImpl.class);
+
 	@Override
 	public ByteArrayOutputStream getObjectFromS3(String bucketName, String key) {
 
@@ -82,7 +97,7 @@ public class ImagesDAOImpl implements ImagesDAO{
 
 	@Override
 	public boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos) {
-
+		boolean imageProcessed = false;
 		try {
 			System.out.println("Uploading a new object to S3 from a file\n");
 			System.out.println("BucketName: " + bucketName + "\n");
@@ -97,18 +112,15 @@ public class ImagesDAOImpl implements ImagesDAO{
 			ObjectMetadata objMetaData = new ObjectMetadata();
 			objMetaData.setContentLength(baos.toByteArray().length);
 			InputStream inputStream = new ByteArrayInputStream(baos.toByteArray());
-            
-			if (lookupFolder(bucketName, folderName, s3Client) != true) {
-			    createFolder(bucketName, folderName, s3Client);
+
+			if (GenericUtils.lookupFolder(bucketName, folderName, s3Client) != true) {
+				GenericUtils.createFolder(bucketName, folderName, s3Client);
 			}
 			key = folderName + SUFFIX + key;
 			System.out.println("new key: " + key + "\n");
 			s3Client.putObject(new PutObjectRequest(bucketName, key, inputStream, objMetaData));
-	
-			JSONObject jsonObj = new JSONObject();
-			jsonObj.put("imageSize", baos.toByteArray().length);
-			NoSQLDBUtils.saveImageMetaDataToDB(jsonObj);
-
+			imageProcessed = true;
+			
 		} catch (AmazonServiceException ase) {
 			System.out.println("Caught an AmazonServiceException, which " + "means your request made it "
 					+ "to Amazon S3, but was rejected with an error response" + " for some reason.");
@@ -123,39 +135,44 @@ public class ImagesDAOImpl implements ImagesDAO{
 					+ "such as not being able to access the network.");
 			System.out.println("Error Message: " + ace.getMessage());
 		}
-		return true;
+		return imageProcessed;
 	}
-	public static void createFolder(String bucketName, String folderName, AmazonS3 client) {
+
+	@Override
+	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp) {
+
+		List<Bson> conditions = new ArrayList<>();
+
+		ArrayList <ImageData> imageDataList = new ArrayList<ImageData>();
+
+		BsonHelper bsonHelper = new BsonHelper(conditions);
+		bsonHelper.addEqBson("username", username);
 		
-		System.out.println("In create folder\n");
-		// create meta-data for your folder and set content-length to 0
-		ObjectMetadata metadata = new ObjectMetadata();
-		metadata.setContentLength(0);
-		// create empty content
-		InputStream emptyContent = new ByteArrayInputStream(new byte[0]);
-		// create a PutObjectRequest passing the folder name suffixed by /
-		PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName,
-				folderName + SUFFIX, emptyContent, metadata);
-		// send request to S3 to create folder
-		client.putObject(putObjectRequest);
-	}
-	public static void deleteFolder(String bucketName, String folderName, AmazonS3 client) {
-		List<S3ObjectSummary> fileList = 
-				client.listObjects(bucketName, folderName).getObjectSummaries();
-		for (S3ObjectSummary file : fileList) {
-			client.deleteObject(bucketName, file.getKey());
+		if(timestamp !=null) {
+			bsonHelper.addGtBson("timestamp", ""+timestamp);
 		}
-		client.deleteObject(bucketName, folderName);
+
+		Bson query = and(conditions);
+
+		FindIterable<Document> iterable = getImgageCollection().find(query).sort(new BasicDBObject("timestamp ", -1)).limit(20);
+
+		try {
+			for(Document image : iterable) {
+				ImageData imageData = new ImageData();
+				imageData = mapper.readValue(image.toJson(), new TypeReference<ImageData>(){});
+				imageDataList.add(imageData);
+			}
+	    }catch(Exception e) {
+	    		LOGGER.error("Error while fetching User Data", e);
+	    }
+
+		return imageDataList;
 	}
-	
-	public static boolean lookupFolder(String bucketName, String folderName, AmazonS3 client) {
-		List<S3ObjectSummary> fileList = 
-				client.listObjects(bucketName, folderName).getObjectSummaries();
-		boolean empty = false;
-		if (fileList.isEmpty()) {
-			empty = true;
-		}
-        return empty;
+
+	@Override
+	public void saveImageDataToDB(JSONObject json) {
+		// TODO Auto-generated method stub
+		
 	}
-	
+
 }

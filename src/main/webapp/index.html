@@ -1,5 +1,26 @@
 <html>
+<head>
+<script>
+function loadDoc() {
+	  var xhttp = new XMLHttpRequest();
+	  xhttp.onreadystatechange = function() {
+	    if (this.readyState == 4 && this.status == 200) {
+	      document.getElementById("demo").innerHTML = atob(JSON.parse(this.responseText).imageList[0].image);
+	    }
+	  };
+	  xhttp.open("GET", "http://10.0.0.24:8080/moments/json/image/getTopImages?username=7817082772&timestamp=", true);
+	  xhttp.setRequestHeader("Authorization", "Basic " + btoa("SRK:MyNameIsKhan"));
+	  xhttp.send();
+	}
+</script>
+</head>
 <body>
-Hi from Moments
+	<h1>Hi from Moments</h1>
+
+<button type="button" onclick="loadDoc()">Request data</button>
+
+<p id="demo"></p>
+
+
 </body>
 </html>
