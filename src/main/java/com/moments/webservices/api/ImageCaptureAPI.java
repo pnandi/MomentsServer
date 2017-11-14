@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
@@ -20,7 +21,9 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.JSONObject;
 
+import com.moments.db.utils.GenericUtils;
 import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.security.service.MLAuthenticationService;
 import com.moments.security.service.impl.MLAuthenticationServiceImpl;
@@ -58,7 +61,7 @@ public class ImageCaptureAPI{
 	    }
 	    
 	    // getting full path
-	    String folderName = NoSQLDBUtils.getFolderName(userName, isHappy);
+	    String folderName = GenericUtils.getFolderName(userName, isHappy);
         System.out.println("folderName Found: " + folderName + "\n");
        
         // forming key to find small image
@@ -102,21 +105,24 @@ public class ImageCaptureAPI{
         boolean result = false;
         
         // Need to get timestamp from device
-        String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        String folderName = NoSQLDBUtils.getFolderName(userName, isHappy);
+        //String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+        
+        String folderName = GenericUtils.getFolderName(userName, isHappy);
         System.out.println("folderName Found: " + folderName + "\n");
         
         UUID uuid = UUID.randomUUID();
         String fileNameKey = uuid.toString();
         System.out.println("UUID=" + fileNameKey );
         
-        NoSQLDBUtils.prepareDocumentImages(userName,isHappy,"moments-images", folderName, fileNameKey, timeStamp );
+        Instant instant = Instant.now();
+ 
+        JSONObject imageJson = GenericUtils.prepareDocumentImages(userName,isHappy,"moments-images", folderName, fileNameKey, ""+instant, "" );
    
         try {
 			while ((len = uploadedInputStream.read(buffer, 0, buffer.length)) != -1) {
 			    baos.write(buffer, 0, len);
 			}
-			result = imageServices.setObjectToS3("moments-images", fileNameKey, folderName , baos);
+			result = imageServices.setObjectToS3("moments-images", fileNameKey, folderName , baos, imageJson);
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -128,29 +134,24 @@ public class ImageCaptureAPI{
 
 		//return Response.ok(result).build();
 	}
-
-	/*@POST
-	@Path("/upload")
-	@Consumes(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(
-	        ,
-	        @FormDataParam("file") FormDataContentDisposition fileDetail,
-	        @FormDataParam("path") String path) {
-
-
-	    // Path format //10.217.14.97/Installables/uploaded/
-	    System.out.println("path::"+path);
-	    String uploadedFileLocation = path
-	            + fileDetail.getFileName();
-
-	    // save it
-	    writeToFile(uploadedInputStream, uploadedFileLocation);
-
-	    String output = "File uploaded to : " + uploadedFileLocation;
-
-	    return Response.status(200).entity(output).build();
-
-	}*/
+	@Path("getTopImages")
+	@GET
+	@Consumes(MediaType.TEXT_PLAIN)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getLatestImages(@QueryParam("username") String username, @QueryParam("timestamp") String timestamp, @HeaderParam("authorization") String authString) {
+		
+		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
+		
+	       if(!authService.authenticate(authString)){
+	    	   	return Response.status(403).type(MediaType.APPLICATION_JSON).
+	    			   entity("{\"error\":\"User not authenticated\"}").build();
+	        }
+	    
+		ImageServices imageServices = new ImageServicesImpl();
+	
+        return Response.status(200).type(MediaType.APPLICATION_JSON)
+        		.entity(imageServices.getMultipleObjectsFromS3(username, timestamp).toString()).build();
+	}
 	
 	
 }
