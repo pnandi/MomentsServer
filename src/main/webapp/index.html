@@ -5,7 +5,8 @@ function loadDoc() {
 	  var xhttp = new XMLHttpRequest();
 	  xhttp.onreadystatechange = function() {
 	    if (this.readyState == 4 && this.status == 200) {
-	      document.getElementById("demo").innerHTML = atob(JSON.parse(this.responseText).imageList[0].image);
+	      document.getElementById("demo").setAttribute('src', "data:image/jpg;base64," + JSON.parse(this.responseText).imageList[0].image);
+	      document.getElementById("timestamp").innerHTML = JSON.parse(this.responseText).imageList[0].timestamp;
 	    }
 	  };
 	  xhttp.open("GET", "http://10.0.0.24:8080/moments/json/image/getTopImages?username=7817082772&timestamp=", true);
@@ -18,9 +19,11 @@ function loadDoc() {
 	<h1>Hi from Moments</h1>
 
 <button type="button" onclick="loadDoc()">Request data</button>
-
-<p id="demo"></p>
-
-
+<div width=100%>
+<img id="demo"></img>
+</div>
+<div>
+	<h3 id="timestamp"></h3>
+</div>
 </body>
 </html>
