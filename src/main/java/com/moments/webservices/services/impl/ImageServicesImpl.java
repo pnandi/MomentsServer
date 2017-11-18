@@ -101,7 +101,7 @@ public class ImageServicesImpl implements ImageServices{
 				
 				JSONObject jsonObj = new JSONObject();
 				
-				jsonObj.put("image", Base64.getEncoder().encode(baos.toByteArray()));
+				jsonObj.put("image", Base64.getEncoder().encodeToString(baos.toByteArray()));
 				jsonObj.put("timestamp",imageData.getTimestamp());
 				jsonObj.put("comments", imageData.getMessages());
 				
