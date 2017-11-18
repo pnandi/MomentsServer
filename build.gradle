@@ -29,9 +29,6 @@ dependencies {
         [group: 'ch.qos.logback', name: 'logback-core', version: '1.2.3'],
         [group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'],
         [group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2']
-
-
-
     )
 
 }

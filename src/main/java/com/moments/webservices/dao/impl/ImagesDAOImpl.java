@@ -42,11 +42,11 @@ import static com.mongodb.client.model.Filters.and;
 
 public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	private static final String SUFFIX = "/";
-	private static final String ACCESS_KEY = "AKIAJCYI6XKA7KFUFCDA";
-	private static final String SECRET_KEY = "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";
-
-    private BasicAWSCredentials awsCredentials = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
-
+	private static final String ACCESS_KEY = "";
+	private static final String SECRET_KEY = "";
+	private String HAPPY = "happy";
+	private String SAD = "sad";
+        private BasicAWSCredentials awsCredentials = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
 	private static Logger LOGGER = LoggerFactory.getLogger(ImagesDAOImpl.class);
 
 	@Override
@@ -147,15 +147,21 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 
 		BsonHelper bsonHelper = new BsonHelper(conditions);
 		bsonHelper.addEqBson("username", username);
+		bsonHelper.addEqBson("isHappy", "true");
+		Bson query = null;
 		
+
+		
+		/*
 		if(timestamp !=null) {
-			bsonHelper.addGtBson("timestamp", ""+timestamp);
+			bsonHelper.addLteBson("timestamp", ""+timestamp);
 		}
-
-		Bson query = and(conditions);
-
-		FindIterable<Document> iterable = getImgageCollection().find(query).sort(new BasicDBObject("timestamp ", -1)).limit(20);
-
+		*/
+		query = and(conditions);
+		
+		LOGGER.error("vineet getMultipleObjectsFromS3 No error3");
+		FindIterable<Document> iterable = getImgageCollection().find(query);
+		//FindIterable<Document> iterable = getImgageCollection().find().sort(new BasicDBObject("timestamp ", -1)).limit(20);
 		try {
 			for(Document image : iterable) {
 				ImageData imageData = new ImageData();
@@ -165,7 +171,7 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	    }catch(Exception e) {
 	    		LOGGER.error("Error while fetching User Data", e);
 	    }
-
+		LOGGER.error("vineet getMultipleObjectsFromS3 No error4");
 		return imageDataList;
 	}
 
