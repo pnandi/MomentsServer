@@ -22,17 +22,21 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.moments.db.utils.GenericUtils;
 import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.security.service.MLAuthenticationService;
 import com.moments.security.service.impl.MLAuthenticationServiceImpl;
+import com.moments.utils.DateTimeHelper;
 import com.moments.webservices.services.ImageServices;
 import com.moments.webservices.services.impl.ImageServicesImpl;
 
 @Path("image")
 @RequestScoped
 public class ImageCaptureAPI{
+	private static Logger LOGGER = LoggerFactory.getLogger(ImageCaptureAPI.class);
 	
 	@Path("getImage")
 	@GET
@@ -43,11 +47,11 @@ public class ImageCaptureAPI{
 	     @QueryParam("userName") String userName){
 		
 		String fileName = key;
-		
-		
-		    System.out.println("isHappy --> "+ isHappyInString);
-		    System.out.println("userName --> "+ userName);
-		    System.out.println("key --> "+ key);
+		LOGGER.info("*****************************************************");
+		LOGGER.info("Request: getImages: isHappy  --> " + isHappyInString);
+		LOGGER.info("Request: getImages: userName --> " + userName); 
+		LOGGER.info("Request: getImages: fileKey  --> " + key); 
+		LOGGER.info("*****************************************************");
 		    
 		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
 	    if(!authService.authenticate(authString)){
@@ -56,21 +60,21 @@ public class ImageCaptureAPI{
 	    }
 	    
 	    boolean isHappy = true;
-	    if (isHappyInString == "false" || isHappyInString =="0"){
-	      	isHappy = false;
+	    if (isHappyInString.equals("false") || isHappyInString.equals("0")){
+		    isHappy = false;
 	    }
 	    
 	    // getting full path
 	    String folderName = GenericUtils.getFolderName(userName, isHappy);
-        System.out.println("folderName Found: " + folderName + "\n");
        
         // forming key to find small image
         key = folderName  + "/" + "small" + "/" + key ;
-        System.out.println("key --> "+ key);
-        
+        LOGGER.info("Request: getImages: Final fileKey  --> " + key); 
+      
 		ImageServices imageServices = new ImageServicesImpl();
 		ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
-        System.out.println("Server size: " + baos.size());
+		LOGGER.info("Request: getImages: Size of file   --> " + baos.size()); 
+     
         
         String headerContent = "attachment; " + "filename = " + fileName;
         
@@ -89,13 +93,18 @@ public class ImageCaptureAPI{
 		@FormDataParam("userName") String userName,
 		@FormDataParam("comment") String comment) {
 		
-	    System.out.println("in uploadImage -->"+fileDetail);
-	    System.out.println("isHappy --> "+ isHappyInString);
-	    System.out.println("userName --> "+ userName);
-	    System.out.println("comment --> "+ comment);
+		
+		LOGGER.info("*****************************************************");
+		LOGGER.info("Request: setImage: isHappy  --> " + isHappyInString);
+		LOGGER.info("Request: setImage: userName --> " + userName); 
+		LOGGER.info("Request: setImage: comment  --> " + comment); 
+		LOGGER.info("Request: setImage: F Detail --> " + fileDetail); 
+		LOGGER.info("*****************************************************");
+	  
 	    boolean isHappy = true;
-	    if (isHappyInString == "false" || isHappyInString =="0"){
-	      	isHappy = false;
+	    
+	    if (isHappyInString.equals("false") || isHappyInString.equals("0")){
+		    isHappy = false;
 	    }
 	    ImageServicesImpl imageServices = new ImageServicesImpl();
           
@@ -108,7 +117,7 @@ public class ImageCaptureAPI{
         //String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
         
         String folderName = GenericUtils.getFolderName(userName, isHappy);
-        System.out.println("folderName Found: " + folderName + "\n");
+        LOGGER.info("Request: setImage: folderName  --> " + folderName);
         
         UUID uuid = UUID.randomUUID();
         String fileNameKey = uuid.toString();
@@ -116,7 +125,7 @@ public class ImageCaptureAPI{
         
         Instant instant = Instant.now();
  
-        JSONObject imageJson = GenericUtils.prepareDocumentImages(userName,isHappy,"moments-images", folderName, fileNameKey, ""+instant, "" );
+        JSONObject imageJson = GenericUtils.prepareDocumentImages(userName,isHappy,"moments-images", folderName, fileNameKey, ""+ instant, comment );
    
         try {
 			while ((len = uploadedInputStream.read(buffer, 0, buffer.length)) != -1) {
@@ -138,19 +147,44 @@ public class ImageCaptureAPI{
 	@GET
 	@Consumes(MediaType.TEXT_PLAIN)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getLatestImages(@QueryParam("username") String username, @QueryParam("timestamp") String timestamp, @HeaderParam("authorization") String authString) {
-		
+	public Response getLatestImages(@QueryParam("username") String username, @QueryParam("timestamp") String timestamp, 
+			@HeaderParam("authorization") String authString, 
+		    @QueryParam("isHappy") String isHappyInString) {
+	  
 		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
 		
 	       if(!authService.authenticate(authString)){
 	    	   	return Response.status(403).type(MediaType.APPLICATION_JSON).
 	    			   entity("{\"error\":\"User not authenticated\"}").build();
 	        }
+	    LOGGER.info("*****************************************************");
+	    LOGGER.info("Request: getLatestImages: username  --> " + username);
+	    LOGGER.info("Request: getLatestImages: timestamp --> " + timestamp);
+	    LOGGER.info("Request: getLatestImages: isHappy   --> " + isHappyInString);
+	    LOGGER.info("*****************************************************");
 	    
+	    boolean isHappy = true;
+	    boolean happyFilter = false;
+	    if (isHappyInString != null) {
+	       	if (isHappyInString.equals("false") || isHappyInString.equals("0")){
+			    isHappy = false;
+			    happyFilter = true;
+			}else if (isHappyInString.equals("true") || isHappyInString.equals("1")){
+				isHappy = true;
+				happyFilter =true;
+			}
+	    }
+	    	   
+	    if (timestamp.isEmpty()) {
+	      	timestamp = null;
+		}
+	    
+	    // vineet Fix it
+	    timestamp = null;
 		ImageServices imageServices = new ImageServicesImpl();
 	
         return Response.status(200).type(MediaType.APPLICATION_JSON)
-        		.entity(imageServices.getMultipleObjectsFromS3(username, timestamp).toString()).build();
+        		.entity(imageServices.getMultipleObjectsFromS3(username, timestamp, isHappy, happyFilter ).toString()).build();
 	}
 	
 	

@@ -9,7 +9,7 @@ function loadDoc() {
 	      document.getElementById("timestamp").innerHTML = JSON.parse(this.responseText).imageList[0].timestamp;
 	    }
 	  };
-	  xhttp.open("GET", "http://10.0.0.24:8080/moments/json/image/getTopImages?username=7817082772&timestamp=", true);
+	  xhttp.open("GET", "http://10.0.0.230:8080/moments/json/image/getTopImages?username=518366499&timestamp=", true);
 	  xhttp.setRequestHeader("Authorization", "Basic " + btoa("SRK:MyNameIsKhan"));
 	  xhttp.send();
 	}

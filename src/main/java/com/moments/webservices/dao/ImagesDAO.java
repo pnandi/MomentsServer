@@ -12,8 +12,9 @@ import com.moments.db.obj.ImageData;
 public interface ImagesDAO {
 
 	ByteArrayOutputStream getObjectFromS3(String bucketName, String key);
-	ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp);
+	ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, boolean isHappy, boolean happyFilter);
 	boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos);
 	void saveImageDataToDB(JSONObject json);
+	
 	
 }
