@@ -58,7 +58,7 @@ public class ImageServicesImpl implements ImageServices{
 	public boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos, JSONObject imageJson) {
 		
 		 boolean isImageProcessed = false;
-		ByteArrayOutputStream originalImage = baos;
+		 ByteArrayOutputStream originalImage = baos;
 		 LOGGER.info("Lagre image size :" + originalImage.size());
 		 
 		 ByteArrayOutputStream smallImage = compressImage(new ByteArrayInputStream(baos.toByteArray()));
@@ -82,21 +82,26 @@ public class ImageServicesImpl implements ImageServices{
 	}
 
 	@Override
-	public JSONObject getMultipleObjectsFromS3(String username, String timestamp) {
+	public JSONObject getMultipleObjectsFromS3(String username, String timestamp, boolean isHappy, boolean happyFilter) {
 		
 		JSONObject imagesJsonObj = new JSONObject();
 		JSONArray imagesJsonArr = new JSONArray();
 		Date dateTimestamp = null;
+		
 		try {
 			
-			if(StringUtils.isNotBlank(timestamp)) {
+			LOGGER.info("Request: getMultipleObjectsFromS3: TimeStamp   --> " + timestamp);
+			if (timestamp != null) {
+				LOGGER.error("Request: getMultipleObjectsFromS3: I should not be here Date   --> " + timestamp);
 				dateTimestamp = DateTimeHelper.parseDateTimeTypeFormat(timestamp);
 			}
-			List<ImageData> imageDataList = imagesDAO.getLatestImagesFromDB(username, dateTimestamp);
+			
+			List<ImageData> imageDataList = imagesDAO.getLatestImagesFromDB(username, dateTimestamp, isHappy, happyFilter);
 	
 			for (ImageData imageData : imageDataList) {
 				//ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
 				String key = GenericUtils.getFolderName(imageData.getUsername(), imageData.getIsHappy())  + "/" + "small" + "/" + imageData.getImageId() ;
+				LOGGER.info("Key found in ImageServicesImpl" + key);
 				ByteArrayOutputStream baos = imagesDAO.getObjectFromS3("moments-images", key);
 				
 				JSONObject jsonObj = new JSONObject();
@@ -104,7 +109,23 @@ public class ImageServicesImpl implements ImageServices{
 				jsonObj.put("image", Base64.getEncoder().encodeToString(baos.toByteArray()));
 				jsonObj.put("timestamp",imageData.getTimestamp());
 				jsonObj.put("comments", imageData.getMessages());
+				jsonObj.put("isHappy", imageData.getIsHappy());
+				jsonObj.put("imageId", imageData.getImageId());
 				
+				String isHappySave = "0";
+				if (imageData.getIsHappy()){
+				     isHappySave = "1";
+				}
+				jsonObj.put("isHappy", isHappySave);
+				
+				LOGGER.info("*****************************************************");
+			    LOGGER.info("Request: getMultipleObjectsFromS3: comment   --> " + imageData.getMessages());
+			    LOGGER.info("Request: getMultipleObjectsFromS3: imageID   --> " + imageData.getImageId());
+			    LOGGER.info("Request: getMultipleObjectsFromS3: isHappy   --> " + isHappySave);
+			    LOGGER.info("*****************************************************");
+				 
+				
+				 
 				imagesJsonArr.put(jsonObj);
 			}
 			

@@ -6,6 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,6 +45,7 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	private static final String SUFFIX = "/";
 	private static final String ACCESS_KEY = "";
 	private static final String SECRET_KEY = "";
+       
 	private String HAPPY = "happy";
 	private String SAD = "sad";
         private BasicAWSCredentials awsCredentials = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
@@ -139,7 +141,7 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	}
 
 	@Override
-	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp) {
+	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, boolean isHappy, boolean happyFilter) {
 
 		List<Bson> conditions = new ArrayList<>();
 
@@ -147,16 +149,23 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 
 		BsonHelper bsonHelper = new BsonHelper(conditions);
 		bsonHelper.addEqBson("username", username);
-		bsonHelper.addEqBson("isHappy", "true");
+		//bsonHelper.addEqBson("isHappy", "true");
 		Bson query = null;
-		
-
-		
-		/*
+		Instant instant = Instant.now();
 		if(timestamp !=null) {
 			bsonHelper.addLteBson("timestamp", ""+timestamp);
+		} else {
+			bsonHelper.addLteBson("timestamp", ""+instant);
 		}
-		*/
+		
+		if (happyFilter) {
+			if(isHappy) {
+				bsonHelper.addEqBson("isHappy", "true");
+			} else {
+				bsonHelper.addEqBson("isHappy", "false");
+			}
+		}
+	
 		query = and(conditions);
 		
 		LOGGER.error("vineet getMultipleObjectsFromS3 No error3");
@@ -164,6 +173,7 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 		//FindIterable<Document> iterable = getImgageCollection().find().sort(new BasicDBObject("timestamp ", -1)).limit(20);
 		try {
 			for(Document image : iterable) {
+				LOGGER.info("Vineet Document Found= " + image);
 				ImageData imageData = new ImageData();
 				imageData = mapper.readValue(image.toJson(), new TypeReference<ImageData>(){});
 				imageDataList.add(imageData);
