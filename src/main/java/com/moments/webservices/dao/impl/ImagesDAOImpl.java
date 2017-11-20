@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.json.JSONObject;
@@ -37,14 +38,15 @@ import com.moments.db.utils.GenericUtils;
 import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.webservices.dao.ImagesDAO;
 import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 
 import static com.mongodb.client.model.Filters.and;
 
 public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	private static final String SUFFIX = "/";
-	private static final String ACCESS_KEY = "";
-	private static final String SECRET_KEY = "";
+	private static final String ACCESS_KEY = "AKIAIIQ6XLETD7ZDFDKQ";
+	private static final String SECRET_KEY = "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";
        
 	private String HAPPY = "happy";
 	private String SAD = "sad";
@@ -141,7 +143,7 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	}
 
 	@Override
-	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, boolean isHappy, boolean happyFilter) {
+	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, String isHappy) {
 
 		List<Bson> conditions = new ArrayList<>();
 
@@ -150,27 +152,23 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 		BsonHelper bsonHelper = new BsonHelper(conditions);
 		bsonHelper.addEqBson("username", username);
 		//bsonHelper.addEqBson("isHappy", "true");
-		Bson query = null;
-		Instant instant = Instant.now();
+
 		if(timestamp !=null) {
-			bsonHelper.addLteBson("timestamp", ""+timestamp);
-		} else {
-			bsonHelper.addLteBson("timestamp", ""+instant);
+			bsonHelper.addGteBson("timestamp", ""+timestamp);
 		}
 		
-		if (happyFilter) {
-			if(isHappy) {
-				bsonHelper.addEqBson("isHappy", "true");
-			} else {
-				bsonHelper.addEqBson("isHappy", "false");
-			}
+		if (isHappy != null) {			
+			bsonHelper.addEqBson("isHappy", isHappy);
 		}
-	
-		query = and(conditions);
 		
-		LOGGER.error("vineet getMultipleObjectsFromS3 No error3");
-		FindIterable<Document> iterable = getImgageCollection().find(query);
-		//FindIterable<Document> iterable = getImgageCollection().find().sort(new BasicDBObject("timestamp ", -1)).limit(20);
+		Bson query = and(conditions);
+		
+		//FindIterable<Document> iterable = getImgageCollection().find(query);
+		BsonDocument bsonDocument = query.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry());
+
+		LOGGER.info("get image query {}", bsonDocument);
+		
+		FindIterable<Document> iterable = getImageCollection().find(query).sort(new BasicDBObject("timestamp ", -1)).limit(20);
 		try {
 			for(Document image : iterable) {
 				LOGGER.info("Vineet Document Found= " + image);

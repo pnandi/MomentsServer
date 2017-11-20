@@ -3,9 +3,7 @@ package com.moments.webservices.api;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 import javax.enterprise.context.RequestScoped;
@@ -19,6 +17,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONObject;
@@ -26,10 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.moments.db.utils.GenericUtils;
-import com.moments.db.utils.NoSQLDBUtils;
 import com.moments.security.service.MLAuthenticationService;
 import com.moments.security.service.impl.MLAuthenticationServiceImpl;
-import com.moments.utils.DateTimeHelper;
+import com.moments.webservices.request.obj.ImageSearchObj;
 import com.moments.webservices.services.ImageServices;
 import com.moments.webservices.services.impl.ImageServicesImpl;
 
@@ -144,47 +142,37 @@ public class ImageCaptureAPI{
 		//return Response.ok(result).build();
 	}
 	@Path("getTopImages")
-	@GET
-	@Consumes(MediaType.TEXT_PLAIN)
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	public Response getLatestImages(@QueryParam("username") String username, @QueryParam("timestamp") String timestamp, 
-			@HeaderParam("authorization") String authString, 
-		    @QueryParam("isHappy") String isHappyInString) {
-	  
+	public Response getLatestImages(ImageSearchObj searchObj,
+			@HeaderParam("authorization") String authString) {
+		
 		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
 		
 	       if(!authService.authenticate(authString)){
 	    	   	return Response.status(403).type(MediaType.APPLICATION_JSON).
 	    			   entity("{\"error\":\"User not authenticated\"}").build();
 	        }
+	    
+	    String username = searchObj.getUsername();
+	    String timestamp = searchObj.getTimestamp();
+	    String isHappy = searchObj.getIsHappy();
+	    
 	    LOGGER.info("*****************************************************");
 	    LOGGER.info("Request: getLatestImages: username  --> " + username);
 	    LOGGER.info("Request: getLatestImages: timestamp --> " + timestamp);
-	    LOGGER.info("Request: getLatestImages: isHappy   --> " + isHappyInString);
+	    LOGGER.info("Request: getLatestImages: isHappy   --> " + isHappy);
 	    LOGGER.info("*****************************************************");
 	    
-	    boolean isHappy = true;
-	    boolean happyFilter = false;
-	    if (isHappyInString != null) {
-	       	if (isHappyInString.equals("false") || isHappyInString.equals("0")){
-			    isHappy = false;
-			    happyFilter = true;
-			}else if (isHappyInString.equals("true") || isHappyInString.equals("1")){
-				isHappy = true;
-				happyFilter =true;
-			}
-	    }
-	    	   
-	    if (timestamp.isEmpty()) {
-	      	timestamp = null;
-		}
 	    
-	    // vineet Fix it
-	    timestamp = null;
+	   isHappy = StringUtils.isNotEmpty(isHappy) ? isHappy : null;
+	   timestamp = StringUtils.isNotEmpty(timestamp) ? timestamp : null;
+	    
 		ImageServices imageServices = new ImageServicesImpl();
 	
         return Response.status(200).type(MediaType.APPLICATION_JSON)
-        		.entity(imageServices.getMultipleObjectsFromS3(username, timestamp, isHappy, happyFilter ).toString()).build();
+        		.entity(imageServices.getMultipleObjectsFromS3(username, timestamp, isHappy ).toString()).build();
 	}
 	
 	

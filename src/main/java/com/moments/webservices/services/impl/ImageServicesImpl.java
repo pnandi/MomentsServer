@@ -82,7 +82,7 @@ public class ImageServicesImpl implements ImageServices{
 	}
 
 	@Override
-	public JSONObject getMultipleObjectsFromS3(String username, String timestamp, boolean isHappy, boolean happyFilter) {
+	public JSONObject getMultipleObjectsFromS3(String username, String timestamp, String isHappy) {
 		
 		JSONObject imagesJsonObj = new JSONObject();
 		JSONArray imagesJsonArr = new JSONArray();
@@ -96,7 +96,7 @@ public class ImageServicesImpl implements ImageServices{
 				dateTimestamp = DateTimeHelper.parseDateTimeTypeFormat(timestamp);
 			}
 			
-			List<ImageData> imageDataList = imagesDAO.getLatestImagesFromDB(username, dateTimestamp, isHappy, happyFilter);
+			List<ImageData> imageDataList = imagesDAO.getLatestImagesFromDB(username, dateTimestamp, isHappy);
 	
 			for (ImageData imageData : imageDataList) {
 				//ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);

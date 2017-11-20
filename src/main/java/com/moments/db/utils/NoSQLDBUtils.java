@@ -42,14 +42,14 @@ public class NoSQLDBUtils extends MongoNoSQLClientProvider{
 			HashMap<String,Object> imagesMap = mapper.readValue(imageJson.toString(), new TypeReference<Map<String, String>>(){});
 
 			LOGGER.info("saving to mongo {}",imageJson);
-			getImgageCollection().insertOne(new Document(imagesMap));
+			getImageCollection().insertOne(new Document(imagesMap));
 		}catch(Exception e) {
 			LOGGER.error("error while saving to Mongo {}",e.getMessage());
 		}
 	}
 	
 	
-	protected static MongoCollection<Document> getImgageCollection(){
+	protected static MongoCollection<Document> getImageCollection(){
 		return db.getCollection("images");
 	}
 	

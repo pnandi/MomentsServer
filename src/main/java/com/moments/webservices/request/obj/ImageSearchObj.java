@@ -1,0 +1,47 @@
+package com.moments.webservices.request.obj;
+
+
+public class ImageSearchObj {
+
+	String username;
+	String isHappy;
+	String timestamp;
+	
+	/**
+	 * @return the username
+	 */
+	public String getUsername() {
+		return username;
+	}
+	/**
+	 * @param username the username to set
+	 */
+	public void setUsername(String username) {
+		this.username = username;
+	}
+	/**
+	 * @return the isHappy
+	 */
+	public String getIsHappy() {
+		return isHappy;
+	}
+	/**
+	 * @param isHappy the isHappy to set
+	 */
+	public void setIsHappy(String isHappy) {
+		this.isHappy = isHappy;
+	}
+	/**
+	 * @return the timestamp
+	 */
+	public String getTimestamp() {
+		return timestamp;
+	}
+	/**
+	 * @param timestamp the timestamp to set
+	 */
+	public void setTimestamp(String timestamp) {
+		this.timestamp = timestamp;
+	}
+	
+}
