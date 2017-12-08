@@ -137,16 +137,27 @@ public class ImageCaptureAPI{
 			return Response.status(403).entity(e).build();
 	               
 		}
-        return Response.status(200).entity(result).build();
+        return Response.status(200).type(MediaType.APPLICATION_JSON)
+        		.entity(imageServices.getSingleObjectFromS3(userName, fileNameKey).toString()).build();
+        
+        //return Response.status(200).entity(result).build();
 
 		//return Response.ok(result).build();
 	}
 	@Path("getTopImages")
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
+	//@Consumes(MediaType.WILDCARD)
 	@Produces(MediaType.APPLICATION_JSON)
 	public Response getLatestImages(ImageSearchObj searchObj,
 			@HeaderParam("authorization") String authString) {
+	/*
+	public Response getLatestImages(
+				@HeaderParam("authorization") String authString,
+			    @FormDataParam("isHappy") String isHappy,
+				@FormDataParam("username") String username,
+				@FormDataParam("timestamp") String timestamp) {
+	*/			
 		
 		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
 		
@@ -154,10 +165,15 @@ public class ImageCaptureAPI{
 	    	   	return Response.status(403).type(MediaType.APPLICATION_JSON).
 	    			   entity("{\"error\":\"User not authenticated\"}").build();
 	        }
-	    
+	   
+	
+		
+		LOGGER.info("*****************************************************");
+		 
 	    String username = searchObj.getUsername();
 	    String timestamp = searchObj.getTimestamp();
 	    String isHappy = searchObj.getIsHappy();
+	   
 	    
 	    LOGGER.info("*****************************************************");
 	    LOGGER.info("Request: getLatestImages: username  --> " + username);

@@ -45,9 +45,10 @@ import static com.mongodb.client.model.Filters.and;
 
 public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	private static final String SUFFIX = "/";
-	private static final String ACCESS_KEY = "AKIAIIQ6XLETD7ZDFDKQ";
-	private static final String SECRET_KEY = "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";
        
+	private static final String ACCESS_KEY = "";
+    private static final String SECRET_KEY = "";
+
 	private String HAPPY = "happy";
 	private String SAD = "sad";
         private BasicAWSCredentials awsCredentials = new BasicAWSCredentials(ACCESS_KEY, SECRET_KEY);
@@ -154,7 +155,7 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 		//bsonHelper.addEqBson("isHappy", "true");
 
 		if(timestamp !=null) {
-			bsonHelper.addGteBson("timestamp", ""+timestamp);
+			bsonHelper.addLteBson("timestamp", ""+timestamp);
 		}
 		
 		if (isHappy != null) {			
@@ -168,10 +169,10 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 
 		LOGGER.info("get image query {}", bsonDocument);
 		
-		FindIterable<Document> iterable = getImageCollection().find(query).sort(new BasicDBObject("timestamp ", -1)).limit(20);
+		FindIterable<Document> iterable = getImageCollection().find(query).sort(new BasicDBObject("timestamp", -1)).limit(4);
+		//FindIterable<Document> iterable = getImageCollection().find(query).sort(_id, 1).limit(4);
 		try {
 			for(Document image : iterable) {
-				LOGGER.info("Vineet Document Found= " + image);
 				ImageData imageData = new ImageData();
 				imageData = mapper.readValue(image.toJson(), new TypeReference<ImageData>(){});
 				imageDataList.add(imageData);
@@ -179,10 +180,44 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	    }catch(Exception e) {
 	    		LOGGER.error("Error while fetching User Data", e);
 	    }
-		LOGGER.error("vineet getMultipleObjectsFromS3 No error4");
 		return imageDataList;
 	}
+    
+	@Override
+	public ArrayList<ImageData> getSingleImageFromDB(String username, String imageId) {
 
+		List<Bson> conditions = new ArrayList<>();
+
+		ArrayList <ImageData> imageDataList = new ArrayList<ImageData>();
+
+		BsonHelper bsonHelper = new BsonHelper(conditions);
+		bsonHelper.addEqBson("username", username);
+
+		
+		if (imageId != null) {			
+			bsonHelper.addEqBson("imageId", imageId);
+		}
+		
+		Bson query = and(conditions);
+		
+		//FindIterable<Document> iterable = getImgageCollection().find(query);
+		BsonDocument bsonDocument = query.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry());
+
+		LOGGER.info("get image query {}", bsonDocument);
+		
+		FindIterable<Document> iterable = getImageCollection().find(query);
+	
+		try {
+			for(Document image : iterable) {
+				ImageData imageData = new ImageData();
+				imageData = mapper.readValue(image.toJson(), new TypeReference<ImageData>(){});
+				imageDataList.add(imageData);
+			}
+	    }catch(Exception e) {
+	    		LOGGER.error("Error while fetching User Data", e);
+	    }
+		return imageDataList;
+	}
 	@Override
 	public void saveImageDataToDB(JSONObject json) {
 		// TODO Auto-generated method stub

@@ -122,6 +122,57 @@ public class ImageServicesImpl implements ImageServices{
 			    LOGGER.info("Request: getMultipleObjectsFromS3: comment   --> " + imageData.getMessages());
 			    LOGGER.info("Request: getMultipleObjectsFromS3: imageID   --> " + imageData.getImageId());
 			    LOGGER.info("Request: getMultipleObjectsFromS3: isHappy   --> " + isHappySave);
+			    LOGGER.info("Request: getMultipleObjectsFromS3: timestamp --> " + imageData.getTimestamp());
+			    LOGGER.info("*****************************************************");
+				 
+				
+				 
+				imagesJsonArr.put(jsonObj);
+			}
+			
+			imagesJsonObj.put("imageList", imagesJsonArr);
+		}catch(Exception e) {
+			LOGGER.error("exception while fetching multiple images {}",e.getMessage());
+		}
+		return imagesJsonObj;
+	}
+	
+	@Override
+	public JSONObject getSingleObjectFromS3(String username, String imageId) {
+		
+		JSONObject imagesJsonObj = new JSONObject();
+		JSONArray imagesJsonArr = new JSONArray();
+		
+		
+		try {
+		
+			
+			List<ImageData> imageDataList = imagesDAO.getSingleImageFromDB(username, imageId);
+	
+			for (ImageData imageData : imageDataList) {
+				String key = GenericUtils.getFolderName(imageData.getUsername(), imageData.getIsHappy())  + "/" + "small" + "/" + imageData.getImageId() ;
+				LOGGER.info("Key found in ImageServicesImpl" + key);
+				ByteArrayOutputStream baos = imagesDAO.getObjectFromS3("moments-images", key);
+				
+				JSONObject jsonObj = new JSONObject();
+				
+				jsonObj.put("image", Base64.getEncoder().encodeToString(baos.toByteArray()));
+				jsonObj.put("timestamp",imageData.getTimestamp());
+				jsonObj.put("comments", imageData.getMessages());
+				jsonObj.put("isHappy", imageData.getIsHappy());
+				jsonObj.put("imageId", imageData.getImageId());
+				
+				String isHappySave = "0";
+				if (imageData.getIsHappy()){
+				     isHappySave = "1";
+				}
+				jsonObj.put("isHappy", isHappySave);
+				
+				LOGGER.info("*****************************************************");
+			    LOGGER.info("Request: getSingleObjectFromS3: comment   --> " + imageData.getMessages());
+			    LOGGER.info("Request: getSingleObjectFromS3: imageID   --> " + imageData.getImageId());
+			    LOGGER.info("Request: getSingleObjectFromS3: isHappy   --> " + isHappySave);
+			    LOGGER.info("Request: getSingleObjectFromS3: timestamp --> " + imageData.getTimestamp());
 			    LOGGER.info("*****************************************************");
 				 
 				

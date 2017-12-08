@@ -15,6 +15,7 @@ public interface ImagesDAO {
 	ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, String isHappy);
 	boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos);
 	void saveImageDataToDB(JSONObject json);
+	ArrayList<ImageData> getSingleImageFromDB(String username, String ImageId);
 	
 	
 }
