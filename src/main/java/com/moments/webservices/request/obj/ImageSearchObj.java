@@ -6,6 +6,7 @@ public class ImageSearchObj {
 	String username;
 	String isHappy;
 	String timestamp;
+	String imageId;
 	
 	/**
 	 * @return the username
@@ -42,6 +43,18 @@ public class ImageSearchObj {
 	 */
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
+	}
+	/**
+	 * @return the imageId
+	 */
+	public String getImageId() {
+		return imageId;
+	}
+	/**
+	 * @param imageId to set
+	 */
+	public void setImageId(String imageId) {
+		this.imageId = imageId;
 	}
 	
 }

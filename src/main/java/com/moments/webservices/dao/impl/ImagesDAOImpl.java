@@ -22,6 +22,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -46,7 +47,9 @@ import static com.mongodb.client.model.Filters.and;
 public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	private static final String SUFFIX = "/";
        
-	private static final String ACCESS_KEY = "";
+
+    
+    private static final String ACCESS_KEY = "";
     private static final String SECRET_KEY = "";
 
 	private String HAPPY = "happy";
@@ -144,7 +147,54 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 	}
 
 	@Override
-	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, String isHappy) {
+	public boolean deleteObjectFromS3(String bucketName, String keyLarge, String keySmall, String folderName) {
+		
+		boolean imageProcessed = false;
+		try {
+
+		    LOGGER.info("*****************************************************");
+		    LOGGER.info("Request: deleteObjectFromS3: BucketName  --> " + bucketName);
+		    LOGGER.info("Request: deleteObjectFromS3: keySmall    --> " + keySmall);
+		    LOGGER.info("Request: deleteObjectFromS3: keyLarge    --> " + keyLarge);
+		    LOGGER.info("Request: deleteObjectFromS3: folderName  --> " + folderName);
+		    LOGGER.info("*****************************************************");
+		
+			System.out.println(awsCredentials.getAWSAccessKeyId());
+			System.out.println(awsCredentials.getAWSSecretKey());
+
+			AmazonS3 s3Client = AmazonS3Client.builder().withRegion("us-east-1").
+					withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
+			
+			
+
+			if (GenericUtils.lookupFolder(bucketName, folderName, s3Client) != true) {
+				imageProcessed = false;
+				LOGGER.error("Request: deleteObjectFromS3 Missing: folderName  --> " + folderName);
+			}
+			s3Client.deleteObject(new DeleteObjectRequest(bucketName, keySmall));
+			s3Client.deleteObject(new DeleteObjectRequest(bucketName, keyLarge));
+			
+			imageProcessed = true;
+			
+		} catch (AmazonServiceException ase) {
+			System.out.println("Caught an AmazonServiceException, which " + "means your request made it "
+					+ "to Amazon S3, but was rejected with an error response" + " for some reason.");
+			System.out.println("Error Message:    " + ase.getMessage());
+			System.out.println("HTTP Status Code: " + ase.getStatusCode());
+			System.out.println("AWS Error Code:   " + ase.getErrorCode());
+			System.out.println("Error Type:       " + ase.getErrorType());
+			System.out.println("Request ID:       " + ase.getRequestId());
+		} catch (AmazonClientException ace) {
+			System.out.println("Caught an AmazonClientException, which " + "means the client encountered "
+					+ "an internal error while trying to " + "communicate with S3, "
+					+ "such as not being able to access the network.");
+			System.out.println("Error Message: " + ace.getMessage());
+		}
+		return imageProcessed;
+	}
+
+	@Override
+	public ArrayList<ImageData> getLatestImagesFromDB(String username, String timestamp, String isHappy) {
 
 		List<Bson> conditions = new ArrayList<>();
 
@@ -219,9 +269,42 @@ public class ImagesDAOImpl extends NoSQLDBUtils implements ImagesDAO{
 		return imageDataList;
 	}
 	@Override
+	public void deleteSingleImageFromDB(String username, String imageId) {
+
+		List<Bson> conditions = new ArrayList<>();
+
+		BsonHelper bsonHelper = new BsonHelper(conditions);
+		bsonHelper.addEqBson("username", username);
+
+		
+		if (imageId != null) {			
+			bsonHelper.addEqBson("imageId", imageId);
+		}
+		
+		Bson query = and(conditions);
+		
+		BsonDocument bsonDocument = query.toBsonDocument(BsonDocument.class, MongoClient.getDefaultCodecRegistry());
+
+		LOGGER.info("get image query {}", bsonDocument);
+	
+		try {
+			getImageCollection().deleteOne(query);
+			
+	    }catch(Exception e) {
+	    		LOGGER.error("Error while fetching User Data", e);
+	    }
+		
+	}
+	@Override
 	public void saveImageDataToDB(JSONObject json) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public ArrayList<ImageData> getLatestImagesFromDB(String username, Date timestamp, String isHappy) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

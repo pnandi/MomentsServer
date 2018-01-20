@@ -66,7 +66,7 @@ public class ImageCaptureAPI{
 	    String folderName = GenericUtils.getFolderName(userName, isHappy);
        
         // forming key to find small image
-        key = folderName  + "/" + "small" + "/" + key ;
+        key = folderName  + "/" + "large" + "/" + key ;
         LOGGER.info("Request: getImages: Final fileKey  --> " + key); 
       
 		ImageServices imageServices = new ImageServicesImpl();
@@ -191,5 +191,61 @@ public class ImageCaptureAPI{
         		.entity(imageServices.getMultipleObjectsFromS3(username, timestamp, isHappy ).toString()).build();
 	}
 	
+	@Path("deleteImage")
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	//@Consumes(MediaType.WILDCARD)
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response deleteImage(ImageSearchObj searchObj,
+			@HeaderParam("authorization") String authString) {
+			
+		
+		MLAuthenticationService authService = new MLAuthenticationServiceImpl();
+		
+	       if(!authService.authenticate(authString)){
+	    	   	return Response.status(403).type(MediaType.APPLICATION_JSON).
+	    			   entity("{\"error\":\"User not authenticated\"}").build();
+	        }
+	   
+	
+		
+		LOGGER.info("*****************************************************");
+		 
+	    String username = searchObj.getUsername();
+	    String imageId = searchObj.getImageId();
+	    String isHappy = searchObj.getIsHappy();
+	   
+	    
+	    LOGGER.info("*****************************************************");
+	    LOGGER.info("Request: deleteImage: username  --> " + username);
+	    LOGGER.info("Request: deleteImage: imageId --> " + imageId);
+	    LOGGER.info("Request: deleteImage: isHappy   --> " + isHappy);
+	    LOGGER.info("*****************************************************");
+	    
+	    
+	    isHappy = StringUtils.isNotEmpty(isHappy) ? isHappy : null;
+	  
+        boolean isHappyBool = true;
+	    
+	    if (isHappy.equals("false") || isHappy.equals("0")){
+	      	isHappyBool = false;
+	    }
+	    // getting full path
+	    String folderName = GenericUtils.getFolderName(username, isHappyBool);
+       
+        // forming key to find small image
+        String keySmall = folderName  + "/" + "small" + "/" + imageId ;
+        LOGGER.info("Request: deleteImage: Final fileKey  --> " + keySmall); 
+      
+        String keyLarge = folderName  + "/" + "large" + "/" + imageId ;
+        LOGGER.info("Request: deleteImage: Final fileKey  --> " + keyLarge); 
+        
+		ImageServices imageServices = new ImageServicesImpl();
+				
+        return Response.status(200).type(MediaType.APPLICATION_JSON)
+        		.entity(imageServices.deleteSingleObjectFromS3(username, imageId, keySmall, keyLarge, folderName ).toString()).build();
+	}
 	
 }
+
+

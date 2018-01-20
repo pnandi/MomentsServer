@@ -12,4 +12,5 @@ public interface ImageServices {
 	JSONObject getMultipleObjectsFromS3(String username , String timestamp, String isHappy);
 	boolean setObjectToS3(String bucketName, String key, String folderName, ByteArrayOutputStream baos, JSONObject imageJson);
 	JSONObject getSingleObjectFromS3(String username, String imageId);
+	JSONObject deleteSingleObjectFromS3(String username, String imageId, String largeKey, String smallKey, String folderName);
 }

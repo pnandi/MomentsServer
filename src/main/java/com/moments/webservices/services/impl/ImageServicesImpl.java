@@ -87,16 +87,17 @@ public class ImageServicesImpl implements ImageServices{
 		JSONObject imagesJsonObj = new JSONObject();
 		JSONArray imagesJsonArr = new JSONArray();
 		Date dateTimestamp = null;
-		
+		String timestampNew = null;
 		try {
 			
 			LOGGER.info("Request: getMultipleObjectsFromS3: TimeStamp   --> " + timestamp);
 			if (timestamp != null) {
 				LOGGER.error("Request: getMultipleObjectsFromS3: I should not be here Date   --> " + timestamp);
 				dateTimestamp = DateTimeHelper.parseDateTimeTypeFormat(timestamp);
+				timestampNew = timestamp;
 			}
 			
-			List<ImageData> imageDataList = imagesDAO.getLatestImagesFromDB(username, dateTimestamp, isHappy);
+			List<ImageData> imageDataList = imagesDAO.getLatestImagesFromDB(username, timestampNew, isHappy);
 	
 			for (ImageData imageData : imageDataList) {
 				//ByteArrayOutputStream baos = imageServices.getObjectFromS3("moments-images", key);
@@ -181,6 +182,23 @@ public class ImageServicesImpl implements ImageServices{
 			}
 			
 			imagesJsonObj.put("imageList", imagesJsonArr);
+		}catch(Exception e) {
+			LOGGER.error("exception while fetching multiple images {}",e.getMessage());
+		}
+		return imagesJsonObj;
+	}
+	
+	@Override
+	public JSONObject deleteSingleObjectFromS3(String username, String imageId, String keySmall, String keyLarge, String folderName) {
+		
+		JSONObject imagesJsonObj = new JSONObject();
+		
+		
+		try {
+			
+			imagesDAO.deleteSingleImageFromDB(username, imageId);
+			imagesDAO.deleteObjectFromS3("moments-images",keyLarge,  keySmall, folderName);
+			
 		}catch(Exception e) {
 			LOGGER.error("exception while fetching multiple images {}",e.getMessage());
 		}
